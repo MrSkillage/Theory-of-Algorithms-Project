@@ -24,5 +24,14 @@ int main(int argc, char *argv[]) {
 
     printf("\n");
 
+    for (int j = 0; j<40; j++) {
+        // What the operation is
+        printf("%3d << &2d: ", i, j);
+        // i shifted left j times
+        bin_print(i << j);
+        // End line
+        printf("\n");
+    }
+
     return 0;
 }
