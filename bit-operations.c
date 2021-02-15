@@ -1,36 +1,47 @@
 #include <stdio.h>
 
-void bin_print(int i) {
+void bin_print(unsigned int i) {
     // Number of bits in an integer
-    int j = sizeof(int) * 8;
-
-    // Temporary Variable
+    int j = sizeof(unsigned int) * 8;
     int k;
-
-    for (j--; j>= 0; j--) {
+    // Loop the number of bits in i, left to right
+    for (j--; j >= 0; j--) {
+        // Pick out the j^th bit of i
         k = ((1 << j) & i) ? 1 : 0;
         printf("%d", k);
     }
 
 }
 
+// Main method signature
 int main(int argc, char *argv[]) {
     
-    // Print Hello, World!
-    printf("%s\n", "Hello, World again!");
-    
-    int i = 241;
+    // Set i to a literal value where '0x' specifies Hexadecimal
+    unsigned int i = 0x0f0f0f;
+
+    printf("Original:\t");
+    // Print i in Binary
     bin_print(i);
+    
+    printf("\t%x\t%u\n\n", i, i);
 
-    printf("\n");
+    // 32 long
+    int j = sizeof(unsigned int) * 8;
 
-    for (int j = 0; j<40; j++) {
-        // What the operation is
-        printf("%3d << &2d: ", i, j);
-        // i shifted left j times
-        bin_print(i << j);
-        // End line
+    for (j--; j>=0; j--) {
+        // 1 gets shifted to the left j times
+        bin_print(1 << j);
         printf("\n");
+
+        // i
+        bin_print(i);
+        printf("\n");
+
+        printf("-------------------------------- &\n");
+
+        // (1 is shifted to the left j times) bitwise logical and i
+        bin_print((1 << j) & i);
+        printf("\n\n");
     }
 
     return 0;
