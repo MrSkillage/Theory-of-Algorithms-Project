@@ -1,5 +1,9 @@
 # Local executables
-*.c
+bit-operations.c
+funcs.c
+funcs2.c
+cmdargs.c
+preproc.c
 
 # Prerequisites
 *.d
