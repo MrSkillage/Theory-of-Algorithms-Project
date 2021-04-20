@@ -9,10 +9,9 @@ const int _i = 1;
 // Words and Bytes
 #define BYTE uint8_t
 #define WORD uint64_t
-#define PF PRIx32
+#define PF PRIx64
 
 // Page 5 of the secure hash standard
-#define ROTL(x, n) ((x << n) | (x >> ((sizeof(x) * 8) - n)))
 #define ROTR(x, n) ((x >> n) | (x << ((sizeof(x) * 8) - n)))
 #define SHR(x, n) (x >> n)
 
@@ -20,10 +19,10 @@ const int _i = 1;
 #define CH(x, y, z) ((x & y) ^ (~x & z))
 #define MAJ(x, y, z) ((x & y) ^ (x & z) ^ (y & z))
 
-#define BIGSIG0(x) (ROTR(x, 2) ^ ROTR(x, 13) ^ ROTR(x, 22))
-#define BIGSIG1(x) (ROTR(x, 6) ^ ROTR(x, 11) ^ ROTR(x, 25))
-#define SMALLSIG0(x) (ROTR(x, 7) ^ ROTR(x, 18) ^ SHR(x, 3))
-#define SMALLSIG1(x) (ROTR(x, 17) ^ ROTR(x, 19) ^ SHR(x, 10))
+#define BIGSIG0(x) (ROTR(x, 28) ^ ROTR(x, 34) ^ ROTR(x, 39))
+#define BIGSIG1(x) (ROTR(x, 14) ^ ROTR(x, 18) ^ ROTR(x, 41))
+#define SMALLSIG0(x) (ROTR(x, 1) ^ ROTR(x, 8) ^ SHR(x, 7))
+#define SMALLSIG1(x) (ROTR(x, 19) ^ ROTR(x, 61) ^ SHR(x, 6))
 
 // Union stores all variables in the same memory
 union Block
@@ -132,8 +131,10 @@ int next_block(FILE *F, union Block *M, enum Status *S, uint64_t *nobits)
         *S = END;
     }
 
-    if (is_lilend()) {
-        for (int i = 0; i < 16; i++) {
+    if (is_lilend())
+    {
+        for (int i = 0; i < 16; i++)
+        {
             M->words[i] = bswap_64(M->words[i]);
         }
     }
@@ -141,10 +142,69 @@ int next_block(FILE *F, union Block *M, enum Status *S, uint64_t *nobits)
     return 1;
 }
 
+// Hash computation process Section 6.4 page 24-26
+int next_hash(union Block *M, WORD H[])
+{
+    // Iterator
+    int t;
+
+    // All Temporary Variables & Message schedule, Section 6.4.2
+    WORD a, b, c, d, e, f, g, h, T1, T2, W[80];
+
+    // Section 6.4.2 Part 1
+    for (t = 0; t < 16; t++)
+    {
+        W[t] = M->words[t];
+    }
+    for (t = 16; t < 80; t++)
+    {
+        W[t] = SMALLSIG1(W[t - 2]) + W[t - 7] + SMALLSIG0(W[t - 15]) + W[t - 16];
+    }
+
+    // Section 6.4.2, Part 2
+    a = H[0];
+    b = H[1];
+    c = H[2];
+    d = H[3];
+    e = H[4];
+    f = H[5];
+    g = H[6];
+    h = H[7];
+
+    // Section 6.4.2, Part 3
+    for (t = 0; t < 80; t++)
+    {
+        T1 = h + BIGSIG1(e) + CH(e, f, g) + K[t] + W[t];
+        T2 = BIGSIG0(a) + MAJ(a, b, c);
+        h = g;
+        g = f;
+        f = e;
+        e = d + T1;
+        d = c;
+        c = b;
+        b = a;
+        a = T1 + T2;
+    }
+
+    // Section 6.4.2, Part 4
+    H[0] = a + H[0];
+    H[1] = b + H[1];
+    H[2] = c + H[2];
+    H[3] = d + H[3];
+    H[4] = e + H[4];
+    H[5] = f + H[5];
+    H[6] = g + H[6];
+    H[7] = h + H[7];
+
+    for (int j = 0; j < 8; j++)
+    {
+        printf("%016" PF "\n", H[j]);
+    }
+}
+
 int sha512(FILE *f, WORD H[])
 {
     // The function that performs the SHA-512 algorithm on message f.
-
     union Block M;
     // Total number of bits read
     uint64_t nobits = 0;
@@ -154,14 +214,10 @@ int sha512(FILE *f, WORD H[])
     // Loop through the (preprocessed) blocks
     while (next_block(f, &M, &S, &nobits))
     {
+        next_hash(&M, H);
     }
 
     return 0;
-}
-
-// Hash computation process Section 6.4 page 24-26
-int next_hash(union Block *M, WORD H[]) {
-    
 }
 
 int main(int argc, char *argv[])
@@ -182,13 +238,15 @@ int main(int argc, char *argv[])
     // Calculate the SHA512 of input file f
     sha512(f, H);
 
-    fclose(f);
-
+    // Print the final SHA512 hash value
     for (int i = 0; i < 8; i++)
     {
-        printf("%08" PF "-", H[i]);
+        printf("%016" PF, H[i]);
     }
     printf("\n");
+
+    // Close the file
+    fclose(f);
 
     return 0;
 }

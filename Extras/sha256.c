@@ -182,7 +182,7 @@ int next_hash(union Block *M, WORD H[])
         a = T1 + T2;
     }
 
-    // Section 6.2.2, Part 3
+    // Section 6.2.2, Part 4
     H[0] = a + H[0];
     H[1] = b + H[1];
     H[2] = c + H[2];
