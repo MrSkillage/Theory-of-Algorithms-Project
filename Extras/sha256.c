@@ -1,23 +1,29 @@
 #include <stdio.h>
 #include <inttypes.h>
+#include <byteswap.h>
 
-#define WLEN 32
+// Checking for Little Endian
+const int _i = 1;
+#define is_lilend() ((*(char *)&_i) != 0)
+
+// Words and Bytes
 #define WORD uint32_t
 #define BYTE uint8_t
-#define PF PRIX32
+#define PF PRIx32
 
 // Page 5 of the secure hash standard
-#define ROTL(n, x) (x << n) | (x >> (WLEN - n))
-#define ROTR(n, x) (x >> n) | (x << (WLEN - n))
-#define SHR(n, x) (x >> n)
+#define ROTL(x, n) ((x << n) | (x >> ((sizeof(x) * 8) - n)))
+#define ROTR(x, n) ((x >> n) | (x << ((sizeof(x) * 8) - n)))
+#define SHR(x, n) (x >> n)
 
 // Page 10 of the secure hash standard
-#define CH(x, y, z) (x & y) ^ (~x & z)
-#define MAJ(x, y, z) (x & y) ^ (x & z) ^ (y & z)
-#define BIGSIG0(x) ROTR(2, x) ^ ROTR(13, x) ^ ROTR(22, x)
-#define BIGSIG1(x) ROTR(6, x) ^ ROTR(11, x) ^ ROTR(25, x)
-#define SMALLSIG0(x) ROTR(7, x) ^ ROTR(18, x) ^ SHR(3, x)
-#define SMALLSIG1(x) ROTR(17, x) ^ ROTR(19, x) ^ SHR(10, x)
+#define CH(x, y, z) ((x & y) ^ (~x & z))
+#define MAJ(x, y, z) ((x & y) ^ (x & z) ^ (y & z))
+
+#define BIGSIG0(x) (ROTR(x, 2) ^ ROTR(x, 13) ^ ROTR(x, 22))
+#define BIGSIG1(x) (ROTR(x, 6) ^ ROTR(x, 11) ^ ROTR(x, 25))
+#define SMALLSIG0(x) (ROTR(x, 7) ^ ROTR(x, 18) ^ SHR(x, 3))
+#define SMALLSIG1(x) (ROTR(x, 17) ^ ROTR(x, 19) ^ SHR(x, 10))
 
 // Union stores both variables in the same memory
 union Block
@@ -52,7 +58,8 @@ const WORD K[] = {
     0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
     0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
-    0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2};
+    0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+};
 
 // Get the next block.
 // Returns 1 if it created a new block from original message or padding
@@ -63,6 +70,7 @@ int next_block(FILE *f, union Block *M, enum Status *S, uint64_t *nobits)
     size_t nobytes;
     if (*S == END)
     {
+        // Finish program
         return 0;
     }
     else if (*S == READ)
@@ -75,7 +83,7 @@ int next_block(FILE *f, union Block *M, enum Status *S, uint64_t *nobits)
         if (nobytes == 64)
         {
             // This happens when we can read 64 bytes from f
-            return 1;
+            // Do nothing.
         }
         else if (nobytes < 56)
         { // This happens when we have enough room for all the padding
@@ -87,7 +95,7 @@ int next_block(FILE *f, union Block *M, enum Status *S, uint64_t *nobits)
                 M->bytes[nobytes] = 0x00; // In bits: 00000000
             }
             // Append length of original input (Check BIG ENDIAN!!)
-            M->sixf[7] = *nobits;
+            M->sixf[7] = (is_lilend() ? bswap_64(*nobits) : *nobits);
             // Say this is the last block
             *S = END;
         }
@@ -95,7 +103,7 @@ int next_block(FILE *f, union Block *M, enum Status *S, uint64_t *nobits)
         {
             // Got to the end of the input message
             // Not enough room in this block for all padding
-            // Append a 1 bit (and seven 0 bits to make a full byte)
+            // Append a 1 bit (and seven 0 bits to make a full byte) (Check BIG ENDIAN!!)
             M->bytes[nobytes] = 0x80; // In bits: 10000000
             // Append 0 bits
             for (nobytes++; nobytes < 64; nobytes++)
@@ -114,23 +122,29 @@ int next_block(FILE *f, union Block *M, enum Status *S, uint64_t *nobits)
             M->bytes[nobytes] = 0x00; // In bits: 00000000
         }
         // Append nobits as an integer. CHECK ENDIANESS!
-        M->sixf[7] = *nobits;
+        M->sixf[7] = (is_lilend() ? bswap_64(*nobits) : *nobits);
         // Change the status to END
         *S = END;
     }
+
+    if (is_lilend())
+    {
+        for (int i = 0; i < 16; i++)
+        {
+            M->words[i] = bswap_32(M->words[i]);
+        }
+    }
+
     return 1;
 }
 
 // This is what makes it hard to reverse the SHA-256 hash value
 int next_hash(union Block *M, WORD H[])
 {
-    // Message schedule, Section 6.2.2
-    WORD W[64];
     // Iterator for WLEN
     int t;
-
-    // Temporary Variables
-    WORD a, b, c, d, e, f, g, h, T1, T2;
+    // Temporary Variables & Message schedule, Section 6.2.2
+    WORD a, b, c, d, e, f, g, h, T1, T2, W[64];
 
     // Section 6.2.2 Part 1
     for (t = 0; t < 16; t++)
@@ -153,7 +167,7 @@ int next_hash(union Block *M, WORD H[])
     h = H[7];
 
     // Section 6.2.2, Part 3
-    for (t = 0; t < 62; t++)
+    for (t = 0; t < 64; t++)
     {
         T1 = h + BIGSIG1(e) + CH(e, f, g) + K[t] + W[t];
         T2 = BIGSIG0(a) + MAJ(a, b, c);
@@ -168,7 +182,7 @@ int next_hash(union Block *M, WORD H[])
     }
 
     // Section 6.2.2, Part 3
-    H[0] = a + H[0]; 
+    H[0] = a + H[0];
     H[1] = b + H[1];
     H[2] = c + H[2];
     H[3] = d + H[3];
