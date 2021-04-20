@@ -86,7 +86,8 @@ int next_block(FILE *f, union Block *M, enum Status *S, uint64_t *nobits)
             // Do nothing.
         }
         else if (nobytes < 56)
-        { // This happens when we have enough room for all the padding
+        { 
+            // This happens when we have enough room for all the padding
             // Append a 1 bit (and seven 0 bits to make a full byte)
             M->bytes[nobytes] = 0x80; // In bits: 10000000
             // Append enough 0 bits, leaving 64 at the end

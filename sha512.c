@@ -1,35 +1,45 @@
 #include <stdio.h>
 #include <inttypes.h>
+#include <byteswap.h>
 
+// Chekcing for Little Endian
+const int _i = 1;
+#define is_lilend() ((*(char *)&_i) != 0)
+
+// Words and Bytes
 #define BYTE uint8_t
 #define WORD uint64_t
-#define WLEN 64
-#define PF PRIX32
+#define PF PRIx32
 
-// Section 2.2.2 pages 5 & 6 of the secure hash standard
-#define ROTL(n, x) (x << n) | (x >> (WLEN - n))
-#define ROTR(n, x) (x >> n) | (x << (WLEN - n))
-#define SHR(n, x) (x >> n)
+// Page 5 of the secure hash standard
+#define ROTL(x, n) ((x << n) | (x >> ((sizeof(x) * 8) - n)))
+#define ROTR(x, n) ((x >> n) | (x << ((sizeof(x) * 8) - n)))
+#define SHR(x, n) (x >> n)
 
-// Section 4.1.3 page 11 of the secure hash standard
-#define CH(x, y, z) (x & y) ^ (~x & z)
-#define MAJ(x, y, z) (x & y) ^ (x & z) ^ (y & z)
-#define BIGSIG0(x) ROTR(28, x) ^ ROTR(34, x) ^ ROTR(39, x)
-#define BIGSIG1(x) ROTR(14, x) ^ ROTR(18, x) ^ ROTR(41, x)
-#define SMALLSIG0(x) ROTR(1, x) ^ ROTR(8, x) ^ SHR(7, x)
-#define SMALLSIG1(x) ROTR(19, x) ^ ROTR(61, x) ^ SHR(6, x)
+// Page 10 of the secure hash standard
+#define CH(x, y, z) ((x & y) ^ (~x & z))
+#define MAJ(x, y, z) ((x & y) ^ (x & z) ^ (y & z))
+
+#define BIGSIG0(x) (ROTR(x, 2) ^ ROTR(x, 13) ^ ROTR(x, 22))
+#define BIGSIG1(x) (ROTR(x, 6) ^ ROTR(x, 11) ^ ROTR(x, 25))
+#define SMALLSIG0(x) (ROTR(x, 7) ^ ROTR(x, 18) ^ SHR(x, 3))
+#define SMALLSIG1(x) (ROTR(x, 17) ^ ROTR(x, 19) ^ SHR(x, 10))
 
 // Union stores all variables in the same memory
-union Block {
+union Block
+{
     //SHA512 works on block sizes of 1024 bits.
     BYTE bytes[128];   // 8x128 = 1024 - dealing with blocks as bytes
-    WORD words[16];   // 64x16 = 1024 - dealing with blocks as words
-    uint64_t sixf[16]; // 64x8 = 1024 - dealing with the last 128 bits of last block
+    WORD words[16];    // 64x16 = 1024 - dealing with blocks as words
+    uint64_t sixf[16]; // 64x16 = 1024 - dealing with the last 128 bits of last block
 };
 
 // Enumeration to keep track of current state
-enum Status {
-    READ, PAD, END
+enum Status
+{
+    READ,
+    PAD,
+    END
 };
 
 // Section 4.2.3 page 12 of the secure hash standard
@@ -54,10 +64,85 @@ const WORD K[] = {
     0xca273eceea26619c, 0xd186b8c721c0c207, 0xeada7dd6cde0eb1e, 0xf57d4f7fee6ed178,
     0x06f067aa72176fba, 0x0a637dc5a2c898a6, 0x113f9804bef90dae, 0x1b710b35131c471b,
     0x28db77f523047d84, 0x32caab7b40c72493, 0x3c9ebe0a15c9bebc, 0x431d67c49c100d4c,
-    0x4cc5d4becb3e42b6, 0x597f299cfc657e2a, 0x5fcb6fab3ad6faec, 0x6c44198c4a475817
-};
+    0x4cc5d4becb3e42b6, 0x597f299cfc657e2a, 0x5fcb6fab3ad6faec, 0x6c44198c4a475817};
 
-int sha512(FILE *f, WORD H[]) {
+// Function used to get blocks of data
+int next_block(FILE *F, union Block *M, enum Status *S, uint64_t *nobits)
+{
+    // Number of bytes read
+    size_t nobytes;
+    if (*S == END)
+    {
+        return 0; // Exit and finish program
+    }
+    else if (*S == READ)
+    {
+        // Try to read-in 128 bytes from the input file
+        nobytes = fread(M->bytes, 1, 128, F);
+        // Calculate the total bits read so far
+        *nobits = *nobits + (8 * nobytes);
+        if (nobytes == 128)
+        {
+            // Reads in 128 bytes perfectly, Do nothing...
+        }
+        else if (nobytes < 112)
+        {
+            // This happens when we have enough room for all the padding
+            // Append a 1 bit (and seven 0 bits to make a full byte)
+            M->bytes[nobytes] = 0x80; // 10000000 in bits
+
+            // Append enough 0 bits, leaving 128 at the end
+            for (nobytes++; nobytes < 112; nobytes++)
+            {
+                M->bytes[nobytes] = 0x00; // 00000000 in bits
+            }
+
+            // Append the length of the original input and check for Endianess
+            M->sixf[15] = (is_lilend() ? bswap_64(*nobits) : *nobits);
+            // Switch state to END
+            *S = END;
+        }
+        else
+        {
+            // At the end of the input messsage with no room for all the padding
+            // Append a 1 bit (and seven 0 bits to make a full byte and check for Endianess)
+            M->bytes[nobytes] - 0x08; // 10000000 in bits
+
+            // Append 0 bits
+            for (nobytes++; nobytes < 128; nobytes)
+            {
+                M->bytes[nobytes] = 0x00; // 00000000 in bits
+            }
+
+            // Switch state to PAD
+            *S = PAD;
+        }
+    }
+    else if (*S == PAD)
+    {
+        // Apend 0 bits
+        for (nobytes = 0; nobytes < 112; nobytes++)
+        {
+            M->bytes[nobytes] = 0x00; // 00000000 in bits
+        }
+
+        // Append nobits as an integer and check for Endianess
+        M->sixf[15] = (is_lilend() ? bswap_64(*nobits) : *nobits);
+        // Set state to END
+        *S = END;
+    }
+
+    if (is_lilend()) {
+        for (int i = 0; i < 16; i++) {
+            M->words[i] = bswap_64(M->words[i]);
+        }
+    }
+
+    return 1;
+}
+
+int sha512(FILE *f, WORD H[])
+{
     // The function that performs the SHA-512 algorithm on message f.
 
     union Block M;
@@ -66,25 +151,44 @@ int sha512(FILE *f, WORD H[]) {
     // Current Status
     enum Status S = READ;
 
+    // Loop through the (preprocessed) blocks
+    while (next_block(f, &M, &S, &nobits))
+    {
+    }
+
     return 0;
 }
 
-int main(int argc, char *argv[]) {
+// Hash computation process Section 6.4 page 24-26
+int next_hash(union Block *M, WORD H[]) {
+    
+}
+
+int main(int argc, char *argv[])
+{
     // Welcome Message
     printf("Hello SHA-512\n");
 
     // Section 5.3.5 page 15 & 16 from the secure hash standard
-    // SHA-512 Const 
+    // SHA-512 Const
     WORD H[] = {
-        0x6a09e667f3bcc908, 0xbb67ae8584caa73b, 0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1, 
-        0x510e527fade682d1, 0x9b05688c2b3e6c1f, 0x1f83d9abfb41bd6b, 0x5be0cd19137e2179
-    };
+        0x6a09e667f3bcc908, 0xbb67ae8584caa73b, 0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1,
+        0x510e527fade682d1, 0x9b05688c2b3e6c1f, 0x1f83d9abfb41bd6b, 0x5be0cd19137e2179};
 
     FILE *f;
     // Open file from command line for reading
-    f= fopen(argv[1], 'r');
+    f = fopen(argv[1], "r");
+
+    // Calculate the SHA512 of input file f
+    sha512(f, H);
 
     fclose(f);
 
-    return 0 ;
+    for (int i = 0; i < 8; i++)
+    {
+        printf("%08" PF "-", H[i]);
+    }
+    printf("\n");
+
+    return 0;
 }
