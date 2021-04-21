@@ -12,17 +12,17 @@ const int _i = 1;
 #define PF PRIx64
 
 // Page 5 of the secure hash standard
-#define ROTR(x, n) ((x >> n) | (x << ((sizeof(x) * 8) - n)))
-#define SHR(x, n) (x >> n)
+#define ROTR(_x, _n) (((_x) >> (_n)) | ((_x) << ((sizeof(_x) * 8) - (_n))))
+#define SHR(_x, _n) ((_x) >> (_n))
 
 // Page 10 of the secure hash standard
-#define CH(x, y, z) ((x & y) ^ (~x & z))
-#define MAJ(x, y, z) ((x & y) ^ (x & z) ^ (y & z))
+#define CH(_x, _y, _z) (((_x) & (_y)) ^ (~(_x) & (_z)))
+#define MAJ(_x, _y, _z) (((_x) & (_y)) ^ ((_x) & (_z)) ^ ((_y) & (_z)))
 
-#define BIGSIG0(x) (ROTR(x, 28) ^ ROTR(x, 34) ^ ROTR(x, 39))
-#define BIGSIG1(x) (ROTR(x, 14) ^ ROTR(x, 18) ^ ROTR(x, 41))
-#define SMALLSIG0(x) (ROTR(x, 1) ^ ROTR(x, 8) ^ SHR(x, 7))
-#define SMALLSIG1(x) (ROTR(x, 19) ^ ROTR(x, 61) ^ SHR(x, 6))
+#define BIGSIG0(_x) (ROTR(_x, 28) ^ ROTR(_x, 34) ^ ROTR(_x, 39))
+#define BIGSIG1(_x) (ROTR(_x, 14) ^ ROTR(_x, 18) ^ ROTR(_x, 41))
+#define SMALLSIG0(_x) (ROTR(_x, 1) ^ ROTR(_x, 8) ^ SHR(_x, 7))
+#define SMALLSIG1(_x) (ROTR(_x, 19) ^ ROTR(_x, 61) ^ SHR(_x, 6))
 
 // Union stores all variables in the same memory
 union Block
@@ -83,6 +83,7 @@ int next_block(FILE *F, union Block *M, enum Status *S, uint64_t *nobits)
         if (nobytes == 128)
         {
             // Reads in 128 bytes perfectly, Do nothing...
+            return 1;
         }
         else if (nobytes < 112)
         {
@@ -91,7 +92,12 @@ int next_block(FILE *F, union Block *M, enum Status *S, uint64_t *nobits)
             M->bytes[nobytes] = 0x80; // 10000000 in bits
 
             // Append enough 0 bits, leaving 128 at the end
-            for (nobytes++; nobytes < 112; nobytes++)
+
+            //
+            //  Something amiss here!!!
+            //
+
+            for (nobytes++; nobytes < 128; nobytes++)
             {
                 M->bytes[nobytes] = 0x00; // 00000000 in bits
             }
@@ -105,10 +111,10 @@ int next_block(FILE *F, union Block *M, enum Status *S, uint64_t *nobits)
         {
             // At the end of the input messsage with no room for all the padding
             // Append a 1 bit (and seven 0 bits to make a full byte and check for Endianess)
-            M->bytes[nobytes] - 0x08; // 10000000 in bits
+            M->bytes[nobytes] = 0x80; // 10000000 in bits
 
             // Append 0 bits
-            for (nobytes++; nobytes < 128; nobytes)
+            for (nobytes++; nobytes < 128; nobytes++)
             {
                 M->bytes[nobytes] = 0x00; // 00000000 in bits
             }
@@ -145,11 +151,12 @@ int next_block(FILE *F, union Block *M, enum Status *S, uint64_t *nobits)
 // Hash computation process Section 6.4 page 24-26
 int next_hash(union Block *M, WORD H[])
 {
+    WORD W[128];
     // Iterator
     int t;
 
     // All Temporary Variables & Message schedule, Section 6.4.2
-    WORD a, b, c, d, e, f, g, h, T1, T2, W[80];
+    WORD a, b, c, d, e, f, g, h, T1, T2;
 
     // Section 6.4.2 Part 1
     for (t = 0; t < 16; t++)
@@ -196,10 +203,7 @@ int next_hash(union Block *M, WORD H[])
     H[6] = g + H[6];
     H[7] = h + H[7];
 
-    for (int j = 0; j < 8; j++)
-    {
-        printf("%016" PF "\n", H[j]);
-    }
+    return 0;
 }
 
 int sha512(FILE *f, WORD H[])
@@ -222,14 +226,13 @@ int sha512(FILE *f, WORD H[])
 
 int main(int argc, char *argv[])
 {
-    // Welcome Message
-    printf("Hello SHA-512\n");
-
     // Section 5.3.5 page 15 & 16 from the secure hash standard
     // SHA-512 Const
     WORD H[] = {
-        0x6a09e667f3bcc908, 0xbb67ae8584caa73b, 0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1,
-        0x510e527fade682d1, 0x9b05688c2b3e6c1f, 0x1f83d9abfb41bd6b, 0x5be0cd19137e2179};
+        0x6a09e667f3bcc908, 0xbb67ae8584caa73b, 
+        0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1,
+        0x510e527fade682d1, 0x9b05688c2b3e6c1f, 
+        0x1f83d9abfb41bd6b, 0x5be0cd19137e2179};
 
     FILE *f;
     // Open file from command line for reading
