@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "cstdint": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "stdlib.h": "c",
+        "sha256.h": "c"
     }
 }

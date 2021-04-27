@@ -58,8 +58,7 @@ const WORD K[] = {
     0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
     0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
-    0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
-};
+    0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2};
 
 // Get the next block.
 // Returns 1 if it created a new block from original message or padding
@@ -86,7 +85,7 @@ int next_block(FILE *f, union Block *M, enum Status *S, uint64_t *nobits)
             // Do nothing.
         }
         else if (nobytes < 56)
-        { 
+        {
             // This happens when we have enough room for all the padding
             // Append a 1 bit (and seven 0 bits to make a full byte)
             M->bytes[nobytes] = 0x80; // In bits: 10000000
@@ -193,8 +192,15 @@ int next_hash(union Block *M, WORD H[])
     H[7] = h + H[7];
 }
 
-int sha256(FILE *f, WORD H[])
+int SHA256(FILE *f)
 {
+    // SHA-256 Const from page 15 section 5.3.3
+    WORD H[] = {
+        0x6a09e667, 0xbb67ae85,
+        0x3c6ef372, 0xa54ff53a,
+        0x510e527f, 0x9b05688c,
+        0x1f83d9ab, 0x5be0cd19};
+
     // The function that performs the SHA256 algorithm on message f.
 
     union Block M;
@@ -208,33 +214,26 @@ int sha256(FILE *f, WORD H[])
     {
         next_hash(&M, H);
     }
-
-    return 0;
-}
-
-int main(int argc, char *argv[])
-{
-    // SHA-256 Const from page 15 section 5.3.3
-    WORD H[] = {
-        0x6a09e667, 0xbb67ae85,
-        0x3c6ef372, 0xa54ff53a,
-        0x510e527f, 0x9b05688c,
-        0x1f83d9ab, 0x5be0cd19};
-
-    // File pinter for reading
-    FILE *f;
-    // Opne file drom command line for reading
-    f = fopen(argv[1], "r");
-
-    // Calculate the SHA256 of f
-    sha256(f, H);
-
+    
     // Print the final SHA256 hash value
     for (int i = 0; i < 8; i++)
     {
         printf("%08" PF, H[i]);
     }
     printf("\n");
+
+    return 0;
+}
+
+int main(int argc, char *argv[])
+{
+    // File pinter for reading
+    FILE *f;
+    // Opne file drom command line for reading
+    f = fopen(argv[1], "r");
+
+    // Calculate the SHA256 of f
+    SHA256(f);
 
     // Close the file
     fclose(f);
