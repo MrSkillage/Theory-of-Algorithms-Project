@@ -19,7 +19,9 @@ We can't reverse the SHA-512 algorithm for a number of design reasons. Firstly, 
 The SHA-512 algorithm is known in computer science as **one-way function**. This is a function that is considered easy to compute on every input, but hard to invert given the image *(the set of all output values the function may produce)* of a random input. It is infeasible to reverse the process that generated the given hash value. The only way to find a message that prodces a given hash would be to attempt a brute-force search of possible inputs to see if they match. This is both a tedious and time-consuming method that may never yield any tangible results and could theoretically take years to complete. <br/>
 The SHA-512 algorithm contains non-linear operations which prevents malicious users from using linear algebra techniques to solve the input of a given output. Non-linear operations make it much harder to calculate the inverse than it is to calculate the hash. During the hash computation each message block from, M^1, ..., M^N is processed and compressed using non-linear operations and has its internal state updated. The next message block comes in and has its internal state processed, compressed and updated. This continues until no more message blocks remain at which point the updated message blocks are concatenated together to create the final hash value [5]. <br/>
 
-### 2). Can you design an algorithm that, given enough time, will find input message that give each of the possible 512-bit strings?
+### 2). Can you design an algorithm that, given enough time, will find input messages that give each of the possible 512-bit strings?
+If we want to try and find a message that has a specific hash value we would used a *Preimage attack*. The most efficient way to compute a preimage is through the use of a brute-force attack, in which the user attempts to guess the correct answer. This has a time complexity of O(2^n), where n = 128bits, **2^128 = 2,480,000,000**, which is consider too high for the output size. However, if we only wanted to compute and find a specific hash value we look for collisions. We can find collisions using a *Birthday attack* which has a time complexity of O(2^(n/2)), where n = is the output (hash value) length of the hash function in bits [6]. The SHA-512 has a hash value size of 512bits and when using a birthday attack the time complexity would equal O(2^(512/2)) = O(2^256). The number 2^256 translates to 1 in over 115 quattuorvigintillion (78 digit number) chances of finding a collsion [7]. To put into a bigger perspective the numebr 2^256 is exponentially bigger than the number of atoms in the perceivable universe. 
+
 
 ### 3). How difficult is it to find a hash digest beginning with at least twelve zeroes?
 
@@ -27,7 +29,8 @@ The SHA-512 algorithm contains non-linear operations which prevents malicious us
 [1] - Cryptographic Hash Function; Wikipedia.org; https://en.wikipedia.org/wiki/Cryptographic_hash_function#SHA-1 <br/>
 [2] - Why can't we reverse hashes?; StackExchange.org; https://crypto.stackexchange.com/questions/45377/why-cant-we-reverse-hashes <br/>
 [3] - Avalanche Effect; Wikipedia.org; https://en.wikipedia.org/wiki/Avalanche_effect <br/>
-[4] - https://stackoverflow.com/questions/6603849/why-is-it-not-possible-to-reverse-a-cryptographic-hash <br/>
+[4] - Stackoverflow.com; https://stackoverflow.com/questions/6603849/why-is-it-not-possible-to-reverse-a-cryptographic-hash <br/>
 [5] - Does hashing require non-linearity?; StackExchange.org; https://crypto.stackexchange.com/questions/41448/does-hashing-require-non-linearity <br/>
-
+[6] - How long to brute force a salted SHA-512 hash?; Stackoverflow.com; https://stackoverflow.com/questions/6776050/how-long-to-brute-force-a-salted-sha-512-hash-salt-provided <br/>
+[7] - Why is 2^256 Secure?; Privacycanada.net; https://privacycanada.net/cryptanalysis/why-is-2-256-secure/ <br/>
 
