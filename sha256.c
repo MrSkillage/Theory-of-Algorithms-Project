@@ -3,8 +3,8 @@
 #include <byteswap.h>
 
 // Checking for Little Endian
-const int _i = 1;
-#define is_lilend() ((*(char *)&_i) != 0)
+const int _j = 1;
+#define is_lilend() ((*(char *)&_j) != 0)
 
 // Words and Bytes
 #define WORD uint32_t
@@ -225,6 +225,7 @@ int SHA256(FILE *f)
     return 0;
 }
 
+/*
 int main(int argc, char *argv[])
 {
     // File pinter for reading
@@ -240,3 +241,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+*/
