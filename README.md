@@ -14,7 +14,40 @@ This repository contains all work done for my 4th Year module Theory of Algorith
 - **sha512.c** : The Secure Hash Standard algorithm SHA 512, includes a SHA512 function that is used in the cmdargs.c file.
 - **test.sh** : A simple shell script that runs tests using bash commands. Checks the functionality of both sha256 & sha512 and prints out 4 tests (two Passes & two Fails) for each.
 
-## How to Run
+## How To Run
+Before we begin the how to section you first need to git clone this repository and make sure the files have downloaded correctly and navigate inside the project folder. The images used in this section are taken from a Linux Debian command line, to find out more about debian [click here](https://www.debian.org/). You will also need to have installed the coreutils package, instructions can be found at [GNU](https://www.gnu.org/software/coreutils/). 
+![image](https://user-images.githubusercontent.com/43910132/116561712-7a2d1f80-a8fa-11eb-8fc3-9ac7a1861c6c.png)
+
+### Testing
+Once you have cloned the git repository you need to make sure you have the coreutils package installed. You can check if you have the coreutils package installed by running the command *sudo dpkg -s coreutils*.
+![image](https://user-images.githubusercontent.com/43910132/116562366-00e1fc80-a8fb-11eb-9152-381ba2cfd8e2.png)
+If you don't have the package installed you can install it by running the command *sudo apt install coreutils*.
+![image](https://user-images.githubusercontent.com/43910132/116562568-2c64e700-a8fb-11eb-9fd5-163037887e72.png)
+Once you have coreutils installed you can begin the testing. To do this we simple use a [Makefile](https://makefiletutorial.com/) command found inside the project folder. Run the command *make test* to execute the test shell script. This will run 4 tests in total on the *input.txt* file. The first 2 tests are run using the *sha512* file I have created and the last 2 test are run using the *sha256* file I have created. Each pair of the SHA tests contain one PASS test and one FAIL test. Each PASS test compares the SHA files I created (*sha256 & sha512*) with the coreutils sha256sum and sha512sum, respectively. Each FAIL test compares the SHA (*sha256 & sha512*) files I created with the string 'FAILED-HASH-VALUE'. All tests print PASS if both the Expected and Output match and print FAIL if they don't match.
+![image](https://user-images.githubusercontent.com/43910132/116565304-a4cca780-a8fd-11eb-95a6-5b8f5463b742.png)
+
+### Running
+After successfully testing we can move onto running the file ourselves, passing in our own files, and choosing the algorithm we wish to use. Run the command *make* to ensure we create a new executable called *main*.
+![image](https://user-images.githubusercontent.com/43910132/116565871-28869400-a8fe-11eb-8108-309d7f73a014.png)
+Note that when we run our tests the *main* executable is automatically created as our tests depend on it, the Makefile inherently knows this and creates the dependent files for us. Now that we have our executable ready run the command *./main -h*. The *-h* brings up the help options and instructions on how to use the executable *main*.
+![image](https://user-images.githubusercontent.com/43910132/116566307-8e731b80-a8fe-11eb-823f-99bd03798c5e.png)
+As you can see we can change the type of SHA algorithm we wish to use using the optional parameter *-a*. The default algorithm is always set to the sha512 algorithm. Lets run the sha512 algorithm on the input.txt file. Run the command *./main -f input.txt*, where *-f* is the optional parameter of the file we wish to pass.
+![image](https://user-images.githubusercontent.com/43910132/116567013-2b35b900-a8ff-11eb-9161-6ee86b7e4146.png)
+We can run the algorithm on any file we wish for instance run the command *./main -f README.md* to get get the sha512 hash value of the *README.md*.
+![image](https://user-images.githubusercontent.com/43910132/116567281-62a46580-a8ff-11eb-9e32-2f15df151865.png)
+Lets change the algorithm and get the sha256 hash value of the *README.md*. Run the command *./main -a 256 -f README.md*.
+![image](https://user-images.githubusercontent.com/43910132/116567648-ba42d100-a8ff-11eb-9e3e-bf4d81c5fd19.png)
+We can run more then one algorithm on more then one file at the same time. For instance we can calculate the sha256 hash value of *input.txt* and the sha512 hash value of *README.md*. Run the command *./main -a 256 -f input.txt -a 512 -f README.md*.
+![image](https://user-images.githubusercontent.com/43910132/116568336-5076f700-a900-11eb-81af-dc17315ead41.png)
+We can run the same algorithm on multiple files. For intance we can calculate the sha512 hash value of *sha256.c*, *sha512.c*, *cmdargs.c*, and *main*. Run the command *./main -f sha256.c -f sha512.c -f cmdargs.c -f main*. Note we don't have to set the SHA algorithm *-a* because the sha512 algorithm is set by default.
+![image](https://user-images.githubusercontent.com/43910132/116568784-b1063400-a900-11eb-8b9e-be1e7b6b075f.png)
+
+### Error Checking
+
+
+
+
+
 
 ## What is the SHA-512 and why is it important?
 
