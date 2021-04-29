@@ -3,10 +3,16 @@
 This repository contains all work done for my 4th Year module Theory of Algorithms. The objective of the project is to create the SHA-512, *Standard-Hash Algorithm*. The program is written in the C programming language. The program will take the name or path of a file as a command line arguement and output the SHA-512 digest of it. This is to be coded from scratch using **ONLY** the standard C library.
 
 ## File Structure
-- **Extras** : This folder contains all working extra text and c files. All rough work leading up to the sha512.c can be found here.
-- **Makefile** : A standard c makefile that complies the sha512 program.
+- **.gitignore** : Standard gitignore file.
+- **Makefile** : A standard c makefile that complies **cmdargs.c** into an executable called *main*. Has two addtional functions:
+  - *make test* : Runs the shell script **test.sh** (see below).
+  - *make clean* : Runs a command to remove all executables created by the **Makefile**.
 - **README.md** : A standard README file written in Markdown, which informs and instructions the reader on the programs design and how to use it. You are reading this right now!
-- **sha512** : The Secure Hash Standard algorithm SHA 512. This program when run will take in a an additional file which will have the SHA 512 hashing function preformed on it.
+- **cmdargs.c** : A c file used to execute and run the SHA Algorithms. All command line arguments and help instructions are found here. Read the ***'How to Run'*** section for more details on this executable.
+- **input.txt** : A simple text file used to run and test the SHA Algorithms.
+- **sha256.c** : The Secure Hash Standard algorithm SHA 256, includes a SHA256 function that is used in the cmdargs.c file.
+- **sha512.c** : The Secure Hash Standard algorithm SHA 512, includes a SHA512 function that is used in the cmdargs.c file.
+- **test.sh** : A simple shell script that runs tests using bash commands. Checks the functionality of both sha256 & sha512 and prints out 4 tests (two Passes & two Fails) for each.
 
 ## How to Run
 
