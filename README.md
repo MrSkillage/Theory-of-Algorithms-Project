@@ -43,6 +43,14 @@ We can run the same algorithm on multiple files. For intance we can calculate th
 ![image](https://user-images.githubusercontent.com/43910132/116568784-b1063400-a900-11eb-8b9e-be1e7b6b075f.png)
 
 ### Error Checking
+The executable *main* requires being pass a file. A failure to do so will result in the program shutting down. Run the command *./main* and you will see the program execuates and exits. This is not a bug but a design decision.
+![image](https://user-images.githubusercontent.com/43910132/116574442-9da99780-a905-11eb-9d5d-98096b50e019.png)
+The user may use one of the options but not provide a value for that option such as *./main -f*. The user will be prompted with a message informing them they have selected an optional parameter but have give no value. They will then be given an example of how to use optional parameters. Run the command *./main -f*.
+![image](https://user-images.githubusercontent.com/43910132/116575053-36401780-a906-11eb-9ff2-43c011a2faf7.png)x
+If the user enters in a valid command but adds an additional parameter they will be prompt with a message at the end of the program showing them an 'Extra arguements:' they included. Run the command *./main -a 256 -f input.txt extrafile*.
+![image](https://user-images.githubusercontent.com/43910132/116576299-57553800-a907-11eb-9222-3eca977660cd.png)
+Lastly the user may enter in a invalid algorthim value and be prompted with a message informing them they have input an incorrect value for the optioanl parameter. Note if the user passes in a file as a parameter by default the executable will run the sha512 algorithm on the file if they specify an incorrect algorthim. Run the command *./main -a 117 -f input.txt*.
+![image](https://user-images.githubusercontent.com/43910132/116575919-00e7f980-a907-11eb-8197-2a75631da870.png)
 
 
 
@@ -63,6 +71,8 @@ If we want to try and find a message that has a specific hash value we would use
 
 
 ### 3). How difficult is it to find a hash digest beginning with at least twelve zeroes?
+
+## Conclusion
 
 ## References
 [1] - Cryptographic Hash Function; Wikipedia.org; https://en.wikipedia.org/wiki/Cryptographic_hash_function#SHA-1 <br/>
