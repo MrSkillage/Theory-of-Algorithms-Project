@@ -72,8 +72,9 @@ The answer is yes and no. We can theoretically design such an algorithm, however
 ### 3). How difficult is it to find a hash digest beginning with at least twelve zeroes?
 The idea of finding specific hash digests beginning with at least tweleve zeroes stems mainly from the Bitcoin community. Bitcoin is a cryptocurrency that uses a peer-to-peer connection which eliminates the need for a central banking system. Bitcoins are created through mining and there transactions are recorded in publicly distributed ledgers called blockchain [11]. Miners group new transactions in *blocks* and broadcast across the network. Each block contains a SHA-256 digest of the previous block linking them together to created a blockchain. To mine a block currently the average time is 10mins per block [12]. The community of Bitcoin miners have found *low block hashes* with tweleve leading zeroes, you can look here for the 12 lowest block hashes in Bitcoin [here](https://bitcoin.stackexchange.com/questions/65478/which-is-the-smallest-hash-that-has-ever-been-hashed) which are dated Dec 2018.
 
-
 ## Conclusion
+I found this module and the task to be extremely fun and educating. While the task is difficult to understand there was no shortage of information provided by the lecturer. The C language can be quite hard to wrap your head around and seem almost more science-fiction then its counterparts Java or Python. However, I found, with persistence, I learned more about how computers work, there interacts with data, and how large complex ideas are really just smaller sets of simple calculations grouped together to seem bigger then they are. I enjoyed the apsect of reading and researching the Secure Hash Standard and seeing computer algorithms as problem solving solutions. I learned so much more about the C programming language, Makefiles, Shell-scripts, Algorthims, and the importance of persistence in problem solving. 
+
 
 ## References
 [1] - Cryptographic Hash Function; Wikipedia.org; https://en.wikipedia.org/wiki/Cryptographic_hash_function#SHA-1 <br/>
