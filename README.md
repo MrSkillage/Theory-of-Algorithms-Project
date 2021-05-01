@@ -52,12 +52,8 @@ If the user enters in a valid command but adds an additional parameter they will
 Lastly the user may enter in a invalid algorthim value and be prompted with a message informing them they have input an incorrect value for the optioanl parameter. Note if the user passes in a file as a parameter by default the executable will run the sha512 algorithm on the file if they specify an incorrect algorthim. Run the command *./main -a 117 -f input.txt*.
 ![image](https://user-images.githubusercontent.com/43910132/116575919-00e7f980-a907-11eb-8197-2a75631da870.png)
 
-
-
-
-
-
 ## What is the SHA-512 and why is it important?
+SHA-512 is one cryptographic hash fucntion of the Secure Hash Algorithm 2 (SHA-2) set of cryptographic hash fucntions. SHA-512 performs a hash function on some data the user passes. A hash function is a function that maps data of arbitrary size to fixed-size values. These functions are related to a range of computer science fields such as compression, randomization functions, and cryptography. The SHA-512 algorithm takes in data and through a set of functions and calculatations converts the data passed into a 128-bit string known as a hash digest. This hash digest is a direct result of the data give to the algorithm and would change dramatically if only 1-bit of data was changed. This hash digest is encrypted and is consider infesible to decrypt. Infesible because, while there are methods of decrypting the set of SHA-2 hash functions the time complexity it would take to complete this process is enormous. The importance of the SHA-512 algorthim is due to its ability to make sudo-random and unique hash digests. This is extremely useful when downloading and transferring data across the internet. We can perform the SHA-512 hash function on a file before it is downloaded. When a user downloads this file they be perform a the same SHA-512 algorithm to verify the file is the same. The SHA-512 algorthim will *always* give the same hash digest for data passed. Because of this SHA-512 is extremely useful in authenticating downloaded files but also in online transactions.
 
 ## Module Questions
 The module requires answering 3 questions. Each question is related to the topics covered in the module Theory of Algorithm. These topics include the Secure Hash Standard, Standard-Hash Algorithms (SHA) 256 and 512, Turing Machines, and more. The questions are labeled 1-3 and answer up to 500 words each below.
